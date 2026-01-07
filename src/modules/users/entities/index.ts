@@ -1,2 +1,2 @@
-// Users entities exports
+export * from './user.entity';
 

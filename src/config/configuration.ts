@@ -1,5 +1,5 @@
 import { IsString, IsNumber, IsOptional, IsEnum, validateSync } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, plainToInstance } from 'class-transformer';
 
 export enum Environment {
   Development = 'development',
@@ -87,8 +87,9 @@ class EnvironmentVariables {
 }
 
 export function validate(config: Record<string, unknown>): AppConfig {
-  const validatedConfig = new EnvironmentVariables();
-  Object.assign(validatedConfig, config);
+  const validatedConfig = plainToInstance(EnvironmentVariables, config, {
+    enableImplicitConversion: true,
+  });
 
   const errors = validateSync(validatedConfig, {
     skipMissingProperties: false,

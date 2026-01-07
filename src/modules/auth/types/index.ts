@@ -1,2 +1,2 @@
-// Auth types exports
+export * from './jwt-payload.type';
 

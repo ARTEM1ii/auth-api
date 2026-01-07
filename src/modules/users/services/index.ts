@@ -1,2 +1,2 @@
-// Users services exports
+export * from './users.service';
 

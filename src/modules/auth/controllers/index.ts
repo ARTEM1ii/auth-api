@@ -1,2 +1,0 @@
-// Auth controllers exports
-
