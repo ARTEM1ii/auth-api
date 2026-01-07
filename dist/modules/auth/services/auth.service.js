@@ -48,14 +48,17 @@ const jwt_1 = require("@nestjs/jwt");
 const config_1 = require("@nestjs/config");
 const bcrypt = __importStar(require("bcrypt"));
 const users_service_1 = require("../../users/services/users.service");
+const refresh_tokens_service_1 = require("./refresh-tokens.service");
 let AuthService = class AuthService {
     usersService;
     jwtService;
     configService;
-    constructor(usersService, jwtService, configService) {
+    refreshTokensService;
+    constructor(usersService, jwtService, configService, refreshTokensService) {
         this.usersService = usersService;
         this.jwtService = jwtService;
         this.configService = configService;
+        this.refreshTokensService = refreshTokensService;
     }
     async register(dto) {
         const existingUser = await this.usersService.findByEmail(dto.email);
@@ -67,6 +70,13 @@ let AuthService = class AuthService {
             password: dto.password,
         });
         const tokens = await this.generateTokens(user.id, user.email);
+        const jwtConfig = this.configService.get('jwt', { infer: true });
+        if (!jwtConfig) {
+            throw new Error('JWT configuration is missing');
+        }
+        const refreshPayload = this.jwtService.decode(tokens.refreshToken);
+        const expiresAt = new Date(refreshPayload.exp * 1000);
+        await this.refreshTokensService.create(user.id, tokens.refreshToken, expiresAt);
         return {
             ...tokens,
             user,
@@ -82,6 +92,13 @@ let AuthService = class AuthService {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
         const tokens = await this.generateTokens(user.id, user.email);
+        const jwtConfig = this.configService.get('jwt', { infer: true });
+        if (!jwtConfig) {
+            throw new Error('JWT configuration is missing');
+        }
+        const refreshPayload = this.jwtService.decode(tokens.refreshToken);
+        const expiresAt = new Date(refreshPayload.exp * 1000);
+        await this.refreshTokensService.create(user.id, tokens.refreshToken, expiresAt);
         return {
             ...tokens,
             user: {
@@ -107,11 +124,19 @@ let AuthService = class AuthService {
             if (payload.type !== 'refresh') {
                 throw new common_1.UnauthorizedException('Invalid token type');
             }
+            const storedToken = await this.refreshTokensService.findValidToken(dto.refreshToken);
+            if (!storedToken) {
+                throw new common_1.UnauthorizedException('Refresh token not found or revoked');
+            }
             const user = await this.usersService.findById(payload.sub);
             if (!user) {
                 throw new common_1.UnauthorizedException('User not found');
             }
+            await this.refreshTokensService.revokeToken(dto.refreshToken);
             const tokens = await this.generateTokens(user.id, user.email);
+            const refreshPayload = this.jwtService.decode(tokens.refreshToken);
+            const expiresAt = new Date(refreshPayload.exp * 1000);
+            await this.refreshTokensService.create(user.id, tokens.refreshToken, expiresAt);
             return {
                 ...tokens,
                 user: {
@@ -126,6 +151,9 @@ let AuthService = class AuthService {
             };
         }
         catch (error) {
+            if (error instanceof common_1.UnauthorizedException) {
+                throw error;
+            }
             throw new common_1.UnauthorizedException('Invalid refresh token');
         }
     }
@@ -133,13 +161,17 @@ let AuthService = class AuthService {
         try {
             const jwtConfig = this.configService.get('jwt', { infer: true });
             if (!jwtConfig) {
-                return;
+                throw new common_1.BadRequestException('JWT configuration is missing');
             }
             this.jwtService.verify(refreshToken, {
                 secret: jwtConfig.refreshSecret,
             });
+            await this.refreshTokensService.revokeToken(refreshToken);
         }
         catch (error) {
+            if (error instanceof common_1.BadRequestException) {
+                throw error;
+            }
             throw new common_1.BadRequestException('Invalid refresh token');
         }
     }
@@ -182,6 +214,7 @@ exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [users_service_1.UsersService,
         jwt_1.JwtService,
-        config_1.ConfigService])
+        config_1.ConfigService,
+        refresh_tokens_service_1.RefreshTokensService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

@@ -1,1 +1,1 @@
-export {};
+export * from './refresh-token.entity';

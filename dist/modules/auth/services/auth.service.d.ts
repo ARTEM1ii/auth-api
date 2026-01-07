@@ -6,11 +6,13 @@ import { LoginDto } from '../dto/login.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { AppConfig } from '../../../config/configuration';
+import { RefreshTokensService } from './refresh-tokens.service';
 export declare class AuthService {
     private readonly usersService;
     private readonly jwtService;
     private readonly configService;
-    constructor(usersService: UsersService, jwtService: JwtService, configService: ConfigService<AppConfig>);
+    private readonly refreshTokensService;
+    constructor(usersService: UsersService, jwtService: JwtService, configService: ConfigService<AppConfig>, refreshTokensService: RefreshTokensService);
     register(dto: RegisterDto): Promise<AuthResponseDto>;
     login(dto: LoginDto): Promise<AuthResponseDto>;
     refreshTokens(dto: RefreshTokenDto): Promise<AuthResponseDto>;

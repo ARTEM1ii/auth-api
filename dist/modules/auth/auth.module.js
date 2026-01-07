@@ -9,8 +9,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthModule = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
+const passport_1 = require("@nestjs/passport");
+const typeorm_1 = require("@nestjs/typeorm");
 const config_1 = require("@nestjs/config");
 const auth_service_1 = require("./services/auth.service");
+const refresh_tokens_service_1 = require("./services/refresh-tokens.service");
+const refresh_token_entity_1 = require("./entities/refresh-token.entity");
+const jwt_strategy_1 = require("./strategies/jwt.strategy");
+const auth_controller_1 = require("./controllers/auth.controller");
 const users_module_1 = require("../users/users.module");
 let AuthModule = class AuthModule {
 };
@@ -19,6 +25,8 @@ exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
             users_module_1.UsersModule,
+            passport_1.PassportModule,
+            typeorm_1.TypeOrmModule.forFeature([refresh_token_entity_1.RefreshTokenEntity]),
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
                 inject: [config_1.ConfigService],
@@ -36,7 +44,8 @@ exports.AuthModule = AuthModule = __decorate([
                 },
             }),
         ],
-        providers: [auth_service_1.AuthService],
+        controllers: [auth_controller_1.AuthController],
+        providers: [auth_service_1.AuthService, refresh_tokens_service_1.RefreshTokensService, jwt_strategy_1.JwtStrategy],
         exports: [auth_service_1.AuthService],
     })
 ], AuthModule);
