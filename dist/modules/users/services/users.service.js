@@ -83,9 +83,6 @@ let UsersService = class UsersService {
             throw new common_1.NotFoundException('User not found');
         }
         user.googleId = googleId;
-        if (user.provider === user_entity_1.UserProvider.LOCAL) {
-            user.provider = user_entity_1.UserProvider.LOCAL;
-        }
         const updatedUser = await this.userRepository.save(user);
         return this.toResponseDto(updatedUser);
     }

@@ -214,5 +214,64 @@ export class AuthService {
   async validateUser(userId: string) {
     return this.usersService.findById(userId);
   }
+
+  async validateGoogleUser(profile: {
+    googleId: string;
+    email: string;
+    name: string;
+  }) {
+    const existingGoogleUser = await this.usersService.findByGoogleId(profile.googleId);
+
+    if (existingGoogleUser) {
+      return existingGoogleUser;
+    }
+
+    const existingEmailUser = await this.usersService.findByEmail(profile.email);
+
+    if (existingEmailUser) {
+      const linkedUser = await this.usersService.linkGoogleAccount(existingEmailUser.id, profile.googleId);
+      const fullUser = await this.usersService.findById(linkedUser.id);
+      return fullUser;
+    }
+
+    const newUserDto = await this.usersService.createGoogleUser(profile.email, profile.googleId);
+    const newUser = await this.usersService.findById(newUserDto.id);
+    return newUser;
+  }
+
+  async handleGoogleAuth(user: {
+    id: string;
+    email: string;
+    provider: string;
+    googleId: string | null;
+    isEmailVerified: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  }): Promise<AuthResponseDto> {
+    const tokens = await this.generateTokens(user.id, user.email);
+
+    const jwtConfig = this.configService.get('jwt', { infer: true });
+    if (!jwtConfig) {
+      throw new Error('JWT configuration is missing');
+    }
+
+    const refreshPayload = this.jwtService.decode(tokens.refreshToken) as TokenPayload & { exp: number };
+    const expiresAt = new Date(refreshPayload.exp * 1000);
+
+    await this.refreshTokensService.create(user.id, tokens.refreshToken, expiresAt);
+
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        email: user.email,
+        provider: user.provider as any,
+        googleId: user.googleId,
+        isEmailVerified: user.isEmailVerified,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    };
+  }
 }
 

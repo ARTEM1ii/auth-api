@@ -16,6 +16,7 @@ const auth_service_1 = require("./services/auth.service");
 const refresh_tokens_service_1 = require("./services/refresh-tokens.service");
 const refresh_token_entity_1 = require("./entities/refresh-token.entity");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
+const google_strategy_1 = require("./strategies/google.strategy");
 const auth_controller_1 = require("./controllers/auth.controller");
 const users_module_1 = require("../users/users.module");
 let AuthModule = class AuthModule {
@@ -45,7 +46,7 @@ exports.AuthModule = AuthModule = __decorate([
             }),
         ],
         controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService, refresh_tokens_service_1.RefreshTokensService, jwt_strategy_1.JwtStrategy],
+        providers: [auth_service_1.AuthService, refresh_tokens_service_1.RefreshTokensService, jwt_strategy_1.JwtStrategy, google_strategy_1.GoogleStrategy],
         exports: [auth_service_1.AuthService],
     })
 ], AuthModule);

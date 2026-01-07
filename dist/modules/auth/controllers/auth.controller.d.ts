@@ -1,3 +1,4 @@
+import type { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
@@ -20,5 +21,7 @@ export declare class AuthController {
         message: string;
     }>;
     getMe(user: CurrentUserType): Promise<CurrentUserType>;
+    googleAuth(): Promise<void>;
+    googleAuthRedirect(req: Request, res: Response): Promise<void>;
 }
 export {};

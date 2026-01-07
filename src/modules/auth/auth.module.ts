@@ -7,6 +7,7 @@ import { AuthService } from './services/auth.service';
 import { RefreshTokensService } from './services/refresh-tokens.service';
 import { RefreshTokenEntity } from './entities/refresh-token.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
 import { AuthController } from './controllers/auth.controller';
 import { UsersModule } from '../users/users.module';
 import { AppConfig } from '../../config/configuration';
@@ -36,7 +37,7 @@ import { AppConfig } from '../../config/configuration';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, RefreshTokensService, JwtStrategy],
+  providers: [AuthService, RefreshTokensService, JwtStrategy, GoogleStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

@@ -6,7 +6,11 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  Req,
+  Res,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import type { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
@@ -57,6 +61,33 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async getMe(@CurrentUser() user: CurrentUserType): Promise<CurrentUserType> {
     return user;
+  }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {}
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
+    const user = req.user as any;
+
+    if (!user) {
+      return res.redirect('/auth/login?error=google_auth_failed');
+    }
+
+    const authResponse = await this.authService.handleGoogleAuth({
+      id: user.id,
+      email: user.email,
+      provider: user.provider,
+      googleId: user.googleId,
+      isEmailVerified: user.isEmailVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    });
+
+    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}?accessToken=${authResponse.accessToken}&refreshToken=${authResponse.refreshToken}`;
+    return res.redirect(redirectUrl);
   }
 }
 

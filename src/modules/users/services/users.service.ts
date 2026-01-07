@@ -49,9 +49,6 @@ export class UsersService {
     }
 
     user.googleId = googleId;
-    if (user.provider === UserProvider.LOCAL) {
-      user.provider = UserProvider.LOCAL;
-    }
 
     const updatedUser = await this.userRepository.save(user);
 

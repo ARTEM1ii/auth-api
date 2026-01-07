@@ -19,4 +19,18 @@ export declare class AuthService {
     logout(refreshToken: string): Promise<void>;
     private generateTokens;
     validateUser(userId: string): Promise<import("../../users/entities").UserEntity | null>;
+    validateGoogleUser(profile: {
+        googleId: string;
+        email: string;
+        name: string;
+    }): Promise<import("../../users/entities").UserEntity | null>;
+    handleGoogleAuth(user: {
+        id: string;
+        email: string;
+        provider: string;
+        googleId: string | null;
+        isEmailVerified: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+    }): Promise<AuthResponseDto>;
 }
