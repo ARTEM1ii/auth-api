@@ -69,6 +69,10 @@ export class UsersService {
     return this.toResponseDto(savedUser);
   }
 
+  async updateUser(user: UserEntity): Promise<UserEntity> {
+    return this.userRepository.save(user);
+  }
+
   private toResponseDto(user: UserEntity): UserResponseDto {
     return {
       id: user.id,

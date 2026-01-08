@@ -28,12 +28,22 @@ type GoogleConfig = {
   callbackUrl: string;
 };
 
+type MailConfig = {
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  password: string;
+  from: string;
+};
+
 export type AppConfig = {
   port: number;
   environment: Environment;
   database: DatabaseConfig;
   jwt: JwtConfig;
   google: GoogleConfig;
+  mail: MailConfig;
 };
 
 class EnvironmentVariables {
@@ -84,6 +94,26 @@ class EnvironmentVariables {
 
   @IsString()
   GOOGLE_CALLBACK_URL: string;
+
+  @IsString()
+  MAIL_HOST: string;
+
+  @IsNumber()
+  @Type(() => Number)
+  MAIL_PORT: number;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  MAIL_SECURE = false;
+
+  @IsString()
+  MAIL_USER: string;
+
+  @IsString()
+  MAIL_PASSWORD: string;
+
+  @IsString()
+  MAIL_FROM: string;
 }
 
 export function validate(config: Record<string, unknown>): AppConfig {
@@ -121,6 +151,14 @@ export function validate(config: Record<string, unknown>): AppConfig {
       clientId: validatedConfig.GOOGLE_CLIENT_ID,
       clientSecret: validatedConfig.GOOGLE_CLIENT_SECRET,
       callbackUrl: validatedConfig.GOOGLE_CALLBACK_URL,
+    },
+    mail: {
+      host: validatedConfig.MAIL_HOST,
+      port: validatedConfig.MAIL_PORT,
+      secure: validatedConfig.MAIL_SECURE,
+      user: validatedConfig.MAIL_USER,
+      password: validatedConfig.MAIL_PASSWORD,
+      from: validatedConfig.MAIL_FROM,
     },
   };
 }

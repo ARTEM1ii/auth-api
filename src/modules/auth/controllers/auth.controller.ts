@@ -16,6 +16,8 @@ import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
+import { VerifyEmailDto } from '../dto/verify-email.dto';
+import { ResendVerificationDto } from '../dto/resend-verification.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../decorators/current-user.decorator';
 
@@ -88,6 +90,18 @@ export class AuthController {
 
     const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}?accessToken=${authResponse.accessToken}&refreshToken=${authResponse.refreshToken}`;
     return res.redirect(redirectUrl);
+  }
+
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  async verifyEmail(@Body() dto: VerifyEmailDto): Promise<{ message: string }> {
+    return this.authService.verifyEmail(dto);
+  }
+
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  async resendVerification(@Body() dto: ResendVerificationDto): Promise<{ message: string }> {
+    return this.authService.resendVerificationCode(dto);
   }
 }
 

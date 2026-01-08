@@ -6,9 +6,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './services/auth.service';
 import { RefreshTokensService } from './services/refresh-tokens.service';
 import { RefreshTokenEntity } from './entities/refresh-token.entity';
+import { EmailVerificationEntity } from './entities/email-verification.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { AuthController } from './controllers/auth.controller';
+import { MailModule } from './mail/mail.module';
+import { MailService } from './services/mail.service';
+import { EmailVerificationService } from './services/email-verification.service';
 import { UsersModule } from '../users/users.module';
 import { AppConfig } from '../../config/configuration';
 
@@ -16,7 +20,8 @@ import { AppConfig } from '../../config/configuration';
   imports: [
     UsersModule,
     PassportModule,
-    TypeOrmModule.forFeature([RefreshTokenEntity]),
+    MailModule,
+    TypeOrmModule.forFeature([RefreshTokenEntity, EmailVerificationEntity]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -37,7 +42,14 @@ import { AppConfig } from '../../config/configuration';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, RefreshTokensService, JwtStrategy, GoogleStrategy],
+  providers: [
+    AuthService,
+    RefreshTokensService,
+    EmailVerificationService,
+    MailService,
+    JwtStrategy,
+    GoogleStrategy,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

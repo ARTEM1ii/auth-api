@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   ConflictException,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -15,6 +16,9 @@ import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { AppConfig } from '../../../config/configuration';
 import { TokenPayload } from '../types/jwt-payload.type';
 import { RefreshTokensService } from './refresh-tokens.service';
+import { EmailVerificationService } from './email-verification.service';
+import { VerifyEmailDto } from '../dto/verify-email.dto';
+import { ResendVerificationDto } from '../dto/resend-verification.dto';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +27,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<AppConfig>,
     private readonly refreshTokensService: RefreshTokensService,
+    private readonly emailVerificationService: EmailVerificationService,
   ) {}
 
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
@@ -36,6 +41,8 @@ export class AuthService {
       email: dto.email,
       password: dto.password,
     });
+
+    await this.emailVerificationService.createAndSendCode(user.id, user.email);
 
     const tokens = await this.generateTokens(user.id, user.email);
 
@@ -272,6 +279,35 @@ export class AuthService {
         updatedAt: user.updatedAt,
       },
     };
+  }
+
+  async verifyEmail(dto: VerifyEmailDto): Promise<{ message: string }> {
+    await this.emailVerificationService.verifyCode(dto.userId, dto.code);
+
+    const user = await this.usersService.findById(dto.userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.isEmailVerified = true;
+    await this.usersService.updateUser(user);
+
+    return { message: 'Email verified successfully' };
+  }
+
+  async resendVerificationCode(dto: ResendVerificationDto): Promise<{ message: string }> {
+    const user = await this.usersService.findById(dto.userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.isEmailVerified) {
+      throw new BadRequestException('Email is already verified');
+    }
+
+    await this.emailVerificationService.createAndSendCode(user.id, user.email);
+
+    return { message: 'Verification code sent successfully' };
   }
 }
 
